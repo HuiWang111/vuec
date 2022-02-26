@@ -66,9 +66,3 @@ export default {
     }
   }
 </style>
-
-<style lang="less">
-  .test {
-    background-color: #fff;
-  }
-</style>

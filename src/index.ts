@@ -2,13 +2,20 @@
  * @Autor: hui.wang
  * @Date: 2022-02-26 09:50:11
  * @LastEditors: hui.wang
- * @LastEditTime: 2022-02-26 15:09:42
+ * @LastEditTime: 2022-02-26 22:03:02
  * @emial: hui.wang@bizfocus.cn
  */
-import { SFCCompiler } from './sfcCompiler'
 import { join } from 'path'
+import { error } from './utils'
+import { sacnDirs } from './scanDirs'
 
 (async function() {
-    const sfcCompiler = new SFCCompiler(join(__dirname, '../__tests__/test.vue'))
-    await sfcCompiler.compile()
+    try {
+        await sacnDirs(
+            join(__dirname, '../example/src'),
+            join(__dirname, '../example/output'),
+        )
+    } catch (e) {
+        error(e)
+    }
 })()

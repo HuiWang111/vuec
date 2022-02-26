@@ -2,7 +2,7 @@
  * @Autor: hui.wang
  * @Date: 2022-02-26 12:36:00
  * @LastEditors: hui.wang
- * @LastEditTime: 2022-02-26 17:04:15
+ * @LastEditTime: 2022-02-26 22:08:04
  * @emial: hui.wang@bizfocus.cn
  */
 import { readFile } from 'fs/promises'
@@ -14,7 +14,7 @@ import { types, transformFromAstAsync } from '@babel/core'
 import { parse as babelParse } from '@babel/parser'
 import traverse from '@babel/traverse'
 import { last, warning } from './utils'
-import { FunctionDeclaration, ImportDeclaration } from '@babel/types'
+import { FunctionDeclaration, ImportDeclaration, VariableDeclaration } from '@babel/types'
 
 export class SFCCompiler {
     private _filePath: string
@@ -41,12 +41,22 @@ export class SFCCompiler {
         if (!content) {
             warning(`${this._fileName} is not include templete`)
         }
-        
-        return compileTemplate({
+
+        const { code, errors } = compileTemplate({
             source: content || '',
             id: this._id,
             filename: this._fileName
-        }).code.replace('export ', '')
+        })
+
+        if (errors.length) {
+            const error = errors[0]
+            if (error instanceof SyntaxError) {
+                throw error
+            }
+            throw new Error(error)
+        }
+        
+        return code.replace('export ', '')
     }
 
     private _compileScript(descriptor: SFCDescriptor): string {
@@ -56,12 +66,16 @@ export class SFCCompiler {
     }
 
     private async _compileStyle({ content, scoped, lang }: SFCStyleBlock): Promise<string> {
-        const { code } = compileStyle({
+        const { code, errors } = compileStyle({
             source: content,
             id: this._id,
             filename: this._fileName,
             scoped
         })
+
+        if (errors.length) {
+            return Promise.reject(errors[0])
+        }
 
         return await this._transformToCss(code, lang)
     }
@@ -85,17 +99,30 @@ export class SFCCompiler {
      * @param {string} renderCode
      * @return {*}
      */
-    private _getRenderNode(renderCode: string): Promise<[FunctionDeclaration, ImportDeclaration[]]> {
-        return new Promise((resolve) => {
+    private _getRenderNode(renderCode: string): Promise<[
+        FunctionDeclaration,
+        ImportDeclaration[],
+        VariableDeclaration[]
+    ]> {
+        return new Promise((resolve, reject) => {
             const ast = babelParse(renderCode, { sourceType: 'module' })
+
+            if (ast.errors.length) {
+                return reject(ast.errors[0])
+            }
+
             const dependencies: ImportDeclaration[] = []
+            const variables: VariableDeclaration[] = []
             
             traverse(ast, {
                 FunctionDeclaration(path) {
-                    resolve([path.node, dependencies])
+                    resolve([path.node, dependencies, variables])
                 },
                 ImportDeclaration(path) {
                     dependencies.push(path.node)
+                },
+                VariableDeclaration(path) {
+                    variables.push(path.node)
                 }
             })
         })
@@ -110,7 +137,12 @@ export class SFCCompiler {
     private async _addRenderProperty(script: string, renderCode: string): Promise<string> {
         let did = false
         const ast = babelParse(script, { sourceType: 'module' })
-        const [{ id, params, body, generator, async }, dependencies] = await this._getRenderNode(renderCode)
+
+        if (ast.errors.length) {
+            return Promise.reject(ast.errors[0])
+        }
+
+        const [{ id, params, body, generator, async }, dependencies, variables] = await this._getRenderNode(renderCode)
         
         traverse(ast, {
             ObjectExpression(path) {
@@ -120,22 +152,28 @@ export class SFCCompiler {
 
                 const properties = path.node.properties;
                 
-                
                 properties.push(types.objectProperty(
                     types.identifier('render'),
                     types.functionExpression(id, params, body, generator, async)
                 ));
                 did = true
+            },
+            ImportDeclaration(path) {
+                dependencies.push(path.node)
             }
         })
-
-        ast.program.body = [...dependencies, ...ast.program.body]
-        const res = await transformFromAstAsync(ast, undefined, { presets: ['@babel/preset-env'] })
+        ast.program.body = [
+            ...dependencies,
+            ...variables,
+            ...ast.program.body.filter(node => node.type !== 'ImportDeclaration')
+        ]
+        
+        const res = await transformFromAstAsync(ast)
 
         return res?.code || ''
     }
 
-    public async compile(): Promise<void> {
+    public async compile(): Promise<[string, string]> {
         const descriptor = await this._getDescriptor()
         const template = this._compileTemplate(descriptor)
         const script = this._compileScript(descriptor)
@@ -145,6 +183,7 @@ export class SFCCompiler {
             css += await this._compileStyle(style)
         }
         
-        await this._addRenderProperty(script, template)
+        const code = await this._addRenderProperty(script, template)
+        return [code, css]
     }
 }
