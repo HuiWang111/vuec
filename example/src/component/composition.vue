@@ -2,7 +2,7 @@
  * @Autor: hui.wang
  * @Date: 2022-02-26 20:40:00
  * @LastEditors: hui.wang
- * @LastEditTime: 2022-02-26 20:44:05
+ * @LastEditTime: 2022-02-27 10:08:53
  * @emial: hui.wang@bizfocus.cn
 -->
 <template>
@@ -27,3 +27,9 @@ const publishedBooksMessage = computed(() => {
   return author.books.length > 0 ? 'Yes' : 'No'
 })
 </script>
+
+<style lang="less">
+  p {
+    color: red;
+  }
+</style>

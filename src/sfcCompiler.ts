@@ -2,7 +2,7 @@
  * @Autor: hui.wang
  * @Date: 2022-02-26 12:36:00
  * @LastEditors: hui.wang
- * @LastEditTime: 2022-02-26 22:08:04
+ * @LastEditTime: 2022-02-27 14:17:57
  * @emial: hui.wang@bizfocus.cn
  */
 import { readFile } from 'fs/promises'
@@ -10,24 +10,29 @@ import { parse, compileTemplate, compileScript, compileStyle } from '@vue/compil
 import type { SFCDescriptor, SFCStyleBlock } from '@vue/compiler-sfc'
 import { v4 as uuid } from 'uuid'
 import less from 'less'
-import { types, transformFromAstAsync } from '@babel/core'
+import * as babel from '@babel/core'
 import { parse as babelParse } from '@babel/parser'
 import traverse from '@babel/traverse'
 import { last, warning } from './utils'
-import { FunctionDeclaration, ImportDeclaration, VariableDeclaration } from '@babel/types'
+import type { FunctionDeclaration, ImportDeclaration, VariableDeclaration } from '@babel/types'
 
 export class SFCCompiler {
     private _filePath: string
     private _fileName: string
     private _id: string
 
-    constructor(filePath: string) {
+    constructor(filePath: string, fileName?: string) {
         this._filePath = filePath
-        const separator = process.platform === 'win32'
-            ? '\\'
-            : '/'
-        this._fileName = last(filePath.split(separator))
         this._id = uuid()
+        
+        if (fileName) {
+            this._fileName = fileName
+        } else {
+            const separator = process.platform === 'win32'
+                ? '\\'
+                : '/'
+            this._fileName = last(filePath.split(separator))
+        }
     }
 
     private async _getDescriptor(): Promise<SFCDescriptor> {
@@ -152,9 +157,9 @@ export class SFCCompiler {
 
                 const properties = path.node.properties;
                 
-                properties.push(types.objectProperty(
-                    types.identifier('render'),
-                    types.functionExpression(id, params, body, generator, async)
+                properties.push(babel.types.objectProperty(
+                    babel.types.identifier('render'),
+                    babel.types.functionExpression(id, params, body, generator, async)
                 ));
                 did = true
             },
@@ -168,7 +173,7 @@ export class SFCCompiler {
             ...ast.program.body.filter(node => node.type !== 'ImportDeclaration')
         ]
         
-        const res = await transformFromAstAsync(ast)
+        const res = await babel.transformFromAstAsync(ast)
 
         return res?.code || ''
     }

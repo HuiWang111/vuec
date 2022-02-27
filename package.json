@@ -1,33 +1,48 @@
 {
-  "name": "@petrichor/vuec",
-  "version": "1.0.0",
-  "description": "sfc compiler cli",
-  "main": "dist/index.js",
-  "author": "kennys.wang",
-  "license": "MIT",
-  "devDependencies": {
-    "@babel/preset-env": "^7.16.11",
-    "@types/chalk": "^2.2.0",
-    "@types/jest": "^27.0.2",
-    "@types/less": "^3.0.3",
-    "@types/node": "^16.9.1",
-    "@types/uuid": "^8.3.4",
-    "@typescript-eslint/eslint-plugin": "^4.31.0",
-    "@typescript-eslint/parser": "^4.31.0",
-    "eslint": "^7.32.0",
-    "eslint-plugin-spellcheck": "^0.0.19",
-    "jest": "^27.2.5",
-    "less": "^4.1.2",
-    "ts-jest": "^27.0.5",
-    "typescript": "^4.4.2",
-    "vue": "^3.2.31"
-  },
-  "dependencies": {
-    "@babel/core": "^7.17.5",
-    "@babel/parser": "^7.17.3",
-    "@babel/traverse": "^7.17.3",
-    "@vue/compiler-sfc": "^3.2.31",
-    "chalk": "4.1.1",
-    "uuid": "^8.3.2"
-  }
+    "name": "@petrichor/vuec",
+    "version": "1.0.0",
+    "description": "sfc compiler cli",
+    "author": "kennys.wang",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:HuiWang111/vuec.git"
+    },
+    "homepage": "https://github.com/HuiWang111/vuec",
+    "bin": {
+        "vuec": "./bin/index.mjs"
+    },
+    "scripts": {
+        "build": "node --experimental-json-modules scripts/build.mjs",
+        "build:cjs": "tsc --sourceMap false --downlevelIteration --skipLibCheck --module commonjs --target es2015 --outDir bin"
+    },
+    "devDependencies": {
+        "@types/chalk": "^2.2.0",
+        "@types/jest": "^27.0.2",
+        "@types/less": "^3.0.3",
+        "@types/node": "^16.9.1",
+        "@types/uuid": "^8.3.4",
+        "@typescript-eslint/eslint-plugin": "^4.31.0",
+        "@typescript-eslint/parser": "^4.31.0",
+        "esbuild": "^0.14.23",
+        "eslint": "^7.32.0",
+        "eslint-plugin-spellcheck": "^0.0.19",
+        "jest": "^27.2.5",
+        "ts-jest": "^27.0.5",
+        "typescript": "^4.4.2"
+    },
+    "dependencies": {
+        "@babel/core": "^7.17.5",
+        "@babel/parser": "^7.17.3",
+        "@babel/traverse": "^7.17.3",
+        "@vue/compiler-sfc": "^3.2.31",
+        "chalk": "4.1.1",
+        "less": "^4.1.2",
+        "uuid": "^8.3.2",
+        "yargs-parser": "^21.0.0"
+    },
+    "files": [
+        "package.json",
+        "dist"
+    ]
 }
