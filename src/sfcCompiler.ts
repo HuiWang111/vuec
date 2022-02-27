@@ -2,7 +2,7 @@
  * @Autor: hui.wang
  * @Date: 2022-02-26 12:36:00
  * @LastEditors: hui.wang
- * @LastEditTime: 2022-02-27 14:17:57
+ * @LastEditTime: 2022-02-27 16:30:56
  * @emial: hui.wang@bizfocus.cn
  */
 import { readFile } from 'fs/promises'
@@ -40,6 +40,11 @@ export class SFCCompiler {
         return parse(sfcContent.toString()).descriptor
     }
 
+    /**
+     * TODO: 目前暂不支持样式上加 scoped
+     * compileTemplate函数可以加scoped属性
+     * 但是暂时没搞懂当存在多个style标签，部分加了scoped部分未加scoped时，compileTemplate如何处理
+     */
     private _compileTemplate(descriptor: SFCDescriptor): string {
         const content = descriptor.template?.content
         

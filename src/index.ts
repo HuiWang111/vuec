@@ -4,12 +4,11 @@
  * @Autor: hui.wang
  * @Date: 2022-02-26 09:50:11
  * @LastEditors: hui.wang
- * @LastEditTime: 2022-02-27 14:28:46
+ * @LastEditTime: 2022-02-27 16:31:48
  * @emial: hui.wang@bizfocus.cn
  */
 import { join } from 'path'
 import argsParser from 'yargs-parser'
-import { pathToFileURL } from 'url'
 import { error, getCommandAndOptions } from './utils'
 import { handleCompile } from './scanDirs'
 import { DEFAULT_CONFIG_FILE } from './constants'
